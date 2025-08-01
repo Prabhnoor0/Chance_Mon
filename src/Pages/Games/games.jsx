@@ -4,6 +4,7 @@ import { Input } from "./components/ui/input.jsx";
 import { Button } from "./components/ui/button.jsx";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react"; // Icon library
+import Link from "next/link";
 import "./App.css"
 
 import Navbar from "../navbar.jsx";
@@ -24,6 +25,14 @@ const shows = [
     image: "/highlow.png",
     category: "Available games",
     path:"./highlow"
+  },
+  {
+    title: "Dice Roll",
+    description:
+      "Roll two dice and predict the sum! Bet on less than 7, equal to 7, or greater than 7. Simple dice game with big rewards!",
+    image: "/dice.png",
+    category: "Available games",
+    path:"./diceroll"
   },
   {
     title: "Spin Wheel",
@@ -118,49 +127,49 @@ export default function NetflixUIClone() {
             </div>
 
             <nav className="hidden md:flex md:items-center md:justify-end md:space-x-12">
-              <a
-                href="/launcher"
+              <Link
+                href="/"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Home
-              </a>
+              </Link>
 
-              <a
-                href="./games"
+              <Link
+                href="/games"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Games
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/ContactUs"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Contact us
-              </a>
+              </Link>
             </nav>
           </div>
 
           {expanded && (
             <nav className="mt-4 flex flex-col space-y-4 md:hidden">
-              <a
-                href="/launcher"
+              <Link
+                href="/"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Home
-              </a>
+              </Link>
 
-              <a
-                href="./games"
+              <Link
+                href="/games"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Games
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/ContactUs"
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Contact us
-              </a>
+              </Link>
             </nav>
           )}
         </div>
@@ -170,11 +179,23 @@ export default function NetflixUIClone() {
       <div
         className="relative h-96 w-full bg-cover bg-center transition-all duration-500"
         style={{ 
-          backgroundImage: `url(${hoveredGame?.image || "/default.jpg"})`,
+          backgroundImage: hoveredGame?.image ? `url(${hoveredGame.image})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
+        {!hoveredGame?.image && (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
+                {hoveredGame?.title || 'Games'}
+              </h1>
+              <p className="text-md md:text-lg text-white/80 max-w-2xl">
+                {hoveredGame?.description || 'Explore our collection of exciting games'}
+              </p>
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black flex flex-col justify-end p-8">
           <motion.h1 
             className="text-4xl md:text-5xl font-bold mb-3" 
@@ -210,7 +231,7 @@ export default function NetflixUIClone() {
               {shows
                 .filter((show) => show.title.toLowerCase().includes(search.toLowerCase()))
                 .map((show, i) => (
-                  <a href={show.path} key={i} className="block">
+                  <Link href={show.path} key={i} className="block">
                     <motion.div
                       className="min-w-[240px] cursor-pointer"
                       whileHover={{ scale: 1.05 }}
@@ -229,7 +250,17 @@ export default function NetflixUIClone() {
                             src={show.image}
                             alt={show.title}
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                           />
+                          <div 
+                            className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-xl"
+                            style={{ display: 'none' }}
+                          >
+                            {show.title}
+                          </div>
                         </div>
                         <CardContent className="p-4">
                           <h3 className="font-semibold text-lg mb-1">{show.title}</h3>
@@ -239,7 +270,7 @@ export default function NetflixUIClone() {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  </a>
+                  </Link>
                 ))}
             </div>
           </div>

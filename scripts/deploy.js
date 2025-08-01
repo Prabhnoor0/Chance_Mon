@@ -9,6 +9,14 @@ async function main() {
     const network = await ethers.provider.getNetwork();
     console.log(`Deploying to network: ${network.name} (Chain ID: ${network.chainId})`);
     
+    // Get the signer and display the address
+    const [signer] = await ethers.getSigners();
+    console.log(`Deploying from address: ${signer.address}`);
+    
+    // Check balance
+    const balance = await ethers.provider.getBalance(signer.address);
+    console.log(`Balance: ${ethers.formatEther(balance)} MONAD`);
+    
     // Check if we're deploying to Monad
     const isMonad = network.chainId === 1337n || network.chainId === 1338n;
     if (isMonad) {

@@ -1,7 +1,7 @@
 // Monad Network Configuration
 export const MONAD_NETWORKS = {
   testnet: {
-    chainId: '0x539', // 1337 in hex
+    chainId: '0x279F', // 10143 in hex
     chainName: 'Monad Testnet',
     nativeCurrency: {
       name: 'Monad',

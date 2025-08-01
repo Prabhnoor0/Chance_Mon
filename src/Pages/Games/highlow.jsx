@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Confetti from "react-confetti";
 import { ethers } from "ethers";
+import { useRouter } from "next/navigation";
 import contractABI from "../../contract_data/Mines.json";
 import contractAddress from "../../contract_data/Mines-address.json";
 import { switchToMonadNetwork, isConnectedToMonad } from "../../contract_data/monad-config";
@@ -37,6 +38,8 @@ const drawCard = () => {
 };
 
 function App() {
+  const router = useRouter();
+  
   // Game state
   const [firstCard, setFirstCard] = useState(null);
   const [secondCard, setSecondCard] = useState(null);
@@ -208,7 +211,7 @@ function App() {
 
       <header className="pt-6 px-8 flex justify-between items-center">
         <button
-          onClick={() => (window.location.href = "/Games/games")}
+          onClick={() => router.push('/games')}
           className="text-white font-medium py-2 px-4 rounded-lg  hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
         >
           <svg

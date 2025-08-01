@@ -1,8 +1,16 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { ethers } from "ethers"
+import { useRouter } from "next/navigation"
+import contractABI from "../../contract_data/Mines.json";
+import contractAddress from "../../contract_data/Mines-address.json";
+import { switchToMonadNetwork, isConnectedToMonad } from "../../contract_data/monad-config";
+import "./dice.css";
 
 const DiceGame = () => {
+  const router = useRouter();
+  
   // Game states
   const [bet, setBet] = useState(0.1) // Bet in Monad
   const [isRolling, setIsRolling] = useState(false)
@@ -13,60 +21,113 @@ const DiceGame = () => {
   const [prediction, setPrediction] = useState("greater") // "less", "equal", "greater"
   const [gameHistory, setGameHistory] = useState([])
 
-  // Contract integration states (similar to your wheel game)
+  // Contract integration states
   const [account, setAccount] = useState(null)
   const [contract, setContract] = useState(null)
   const [balance, setBalance] = useState(0)
+  const [provider, setProvider] = useState(null)
+  const [signer, setSigner] = useState(null)
 
-  // Connect to MetaMask and initialize contract (adapt your existing contract)
-  useEffect(() => {
-    const connectWallet = async () => {
-      if (window.ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum)
-          await provider.send("eth_requestAccounts", [])
-          const signer = await provider.getSigner()
-          const address = await signer.getAddress()
-          setAccount(address)
-          
-          // Add your contract initialization here
-          // const contractInstance = new ethers.Contract(
-          //   contractAddress.address,
-          //   contractABI.abi,
-          //   signer
-          // )
-          // setContract(contractInstance)
-          
-          // Get balance
-          const balance = await provider.getBalance(address)
-          setBalance(parseFloat(ethers.formatEther(balance)))
-        } catch (err) {
-          console.error("Wallet connection error:", err)
-          alert("Failed to connect wallet. Please try again.")
-        }
-      } else {
-        alert("Please install MetaMask!")
-      }
+  // Connect to MetaMask and initialize contract
+  const initializeEthers = async () => {
+    if (!window.ethereum) {
+      alert("MetaMask not detected!");
+      return;
     }
-    connectWallet()
-  }, [])
+    
+    try {
+      // Check if connected to Monad network
+      const isMonad = await isConnectedToMonad();
+      if (!isMonad) {
+        const switchNetwork = confirm("You're not connected to Monad network. Would you like to switch to Monad Testnet?");
+        if (switchNetwork) {
+          await switchToMonadNetwork('testnet');
+        } else {
+          alert("Please connect to Monad network to play this game");
+          return;
+        }
+      }
+
+      const _provider = new ethers.BrowserProvider(window.ethereum);
+      const _signer = await _provider.getSigner();
+      const _contract = new ethers.Contract(contractAddress.address, contractABI.abi, _signer);
+
+      setProvider(_provider);
+      setSigner(_signer);
+      setContract(_contract);
+
+      const accounts = await _provider.send("eth_requestAccounts", []);
+      const address = accounts[0];
+      setAccount(address);
+      
+      // Get balance
+      const balance = await _provider.getBalance(address);
+      setBalance(parseFloat(ethers.formatEther(balance)));
+    } catch (error) {
+      console.error("Error initializing ethers:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (window.ethereum) {
+      initializeEthers();
+    }
+  }, []);
+
+  // Place bet via contract
+  const placeBet = async () => {
+    if (!window.ethereum || !contract) {
+      alert("Please connect MetaMask and ensure you're on Monad network!");
+      return false;
+    }
+
+    try {
+      if (!contract) {
+        await initializeEthers();
+      }
+      
+      const tx = await contract.bet({
+        value: ethers.parseEther(bet.toString()),
+        gasLimit: 200_000n,
+      });
+      
+      await tx.wait();
+      console.log("Bet placed successfully!");
+      return true;
+    } catch (err) {
+      console.error("Bet failed:", err);
+      alert("Bet transaction failed. Please try again.");
+      return false;
+    }
+  };
+
+  // Cash out function
+  const cashoutFromContract = async (amount) => {
+    if (!window.ethereum || !contract || !account) {
+      alert("MetaMask not connected properly.");
+      return false;
+    }
+    
+    try {
+      const amountWei = ethers.parseEther(amount.toString());
+      const tx = await contract.sendEtherFromContract(account, amountWei);
+      await tx.wait();
+      console.log("Cashout successful!");
+      return true;
+    } catch (err) {
+      console.error("Cashout failed:", err);
+      alert("Cashout transaction failed. Please try again.");
+      return false;
+    }
+  };
 
   // Dice rolling animation
   const rollDice = async () => {
     if (isRolling || bet <= 0) return
     
-    // Place bet via contract (similar to your wheel game)
-    // try {
-    //   const tx = await contract.bet({
-    //     value: ethers.parseEther(bet.toString()),
-    //     gasLimit: 200_000n,
-    //   })
-    //   await tx.wait()
-    // } catch (err) {
-    //   console.error("Bet transaction failed:", err)
-    //   alert("Bet failed, please try again.")
-    //   return
-    // }
+    // Place bet via contract
+    const betSuccess = await placeBet();
+    if (!betSuccess) return;
 
     setIsRolling(true)
     setResult(null)
@@ -129,6 +190,13 @@ const DiceGame = () => {
     setResult(gameResult)
     setGameHistory(prev => [gameResult, ...prev.slice(0, 4)]) // Keep last 5 games
 
+    // Update balance after bet
+    if (provider && account) {
+      provider.getBalance(account).then(newBalance => {
+        setBalance(parseFloat(ethers.formatEther(newBalance)));
+      });
+    }
+
     if (isWin) {
       setTimeout(() => {
         setShowCongrats(true)
@@ -140,22 +208,24 @@ const DiceGame = () => {
     }
   }
 
-  // Cash out function (similar to your wheel game)
+  // Cash out function
   const cashOut = async () => {
     if (!result || result.winAmount <= 0) return
     
-    // Implementation similar to your wheel game
-    // try {
-    //   const tx = await contract.sendEtherFromContract(
-    //     account,
-    //     ethers.parseEther(result.winAmount.toString())
-    //   )
-    //   await tx.wait()
-    //   alert(`Cashed out: ${result.winAmount.toFixed(4)} MONAD`)
-    // } catch (err) {
-    //   console.error("Cash out error:", err)
-    //   alert("Cash out failed")
-    // }
+    try {
+      const success = await cashoutFromContract(result.winAmount);
+      if (success) {
+        alert(`Cashed out: ${result.winAmount.toFixed(4)} MONAD`);
+        // Update balance after successful cashout
+        if (provider && account) {
+          const newBalance = await provider.getBalance(account);
+          setBalance(parseFloat(ethers.formatEther(newBalance)));
+        }
+      }
+    } catch (err) {
+      console.error("Cash out error:", err);
+      alert("Cash out failed");
+    }
   }
 
   // Dice face component
@@ -202,7 +272,7 @@ const DiceGame = () => {
         <div className="flex items-center mb-4">
           <button 
             className="bg-gray-800 text-white px-4 py-2 rounded-lg mr-3 flex items-center hover:bg-gray-700" 
-            onClick={() => window.history.back()}
+            onClick={() => router.push('/games')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />

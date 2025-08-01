@@ -21,8 +21,8 @@ module.exports = {
     },
     // Monad Testnet
     monad_testnet: {
-      url: "https://rpc.testnet.monad.xyz",
-      chainId: 1337,
+      url: "https://testnet-rpc.monad.xyz",
+      chainId: 10143,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
     },
     // Monad Mainnet (when available)

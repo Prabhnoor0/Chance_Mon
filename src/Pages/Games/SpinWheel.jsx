@@ -2,11 +2,14 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ethers } from "ethers";
+import { useRouter } from "next/navigation";
 import contractABI from "../../contract_data/Mines.json";
 import contractAddress from "../../contract_data/Mines-address.json";
 import "./SpinWheel.css"
 
 const WheelGame = () => {
+  const router = useRouter();
+  
   // Updated number of segments to 15
   const SEGMENTS = 15
   
@@ -314,7 +317,7 @@ const WheelGame = () => {
       <div className="flex items-center mb-4">
           <button 
             className="#111828 text-white px-4 py-2 rounded-lg mr-3 flex items-center" 
-            onClick={() => window.history.back()}
+            onClick={() => router.push('/games')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
