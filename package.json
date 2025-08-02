@@ -6,10 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "hardhat:deploy": "npx hardhat run scripts/deploy.js --network localhost",
-    "hardhat:deploy:sepolia": "npx hardhat run scripts/deploy.js --network sepolia",
-    "hardhat:deploy:monad-testnet": "npx hardhat run scripts/deploy.js --network monad_testnet",
-    "hardhat:deploy:monad-mainnet": "npx hardhat run scripts/deploy.js --network monad_mainnet"
+    "deploy:local": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "npx hardhat run scripts/deploy.js --network sepolia",
+    "deploy:monad-testnet": "npx hardhat run scripts/deploy-monad.js --network monad_testnet",
+    "deploy:monad-mainnet": "npx hardhat run scripts/deploy-monad.js --network monad_mainnet",
+    "deploy:all": "npx hardhat run scripts/deploy-all-games.js --network monad_testnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
