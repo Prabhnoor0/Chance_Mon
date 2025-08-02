@@ -50,6 +50,14 @@ const shows = [
     category: "Available games",
     path:"./BlackJack"
   },
+  {
+    title: "Maze Game",
+    description:
+      "Navigate through randomly generated mazes! Bet ETH and time limits, complete the maze within your time to win 10x your bet!",
+    image: "/maze.png",
+    category: "Available games",
+    path:"./maze"
+  },
 ];
 
 const groupedShows = shows.reduce((acc, show) => {
