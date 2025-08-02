@@ -58,6 +58,14 @@ const shows = [
     category: "Available games",
     path:"./maze"
   },
+  {
+    title: "Snakes & Ladders",
+    description:
+      "Classic board game with Web3 betting! Roll the dice, climb ladders, avoid snakes, and race to 100 to win 5x your bet!",
+    image: "/snakes.png",
+    category: "Available games",
+    path:"./snakes"
+  },
 ];
 
 const groupedShows = shows.reduce((acc, show) => {
